@@ -3,6 +3,32 @@
 #include <math.h>
 #include <assert.h>
 
+bool Cache::read(unsigned pc){
+    unsigned tag = this->tag(pc);
+    unsigned level = this->level(pc);
+    cout << "read - level: " << level << " tag: " << tag << endl;
+
+    if(find_block(pc) != -1)
+        return true;
+
+    push_block(pc);
+    return false;
+}
+
+bool Cache::write(unsigned pc){
+    unsigned tag = this->tag(pc);
+    unsigned level = this->level(pc);
+    int idx = find_block(pc);
+    if(idx != -1){
+        cache_data[level][idx].dirty = 1;
+        return true;
+    }
+    if(this->write_alloc){
+        push_block(pc);
+    }
+    return false;
+}
+
 Cache::Cache(int cache_size, int block_size, int n_ways, int rw_cycles, bool write_alloc){
     this->cache_size = cache_size;
     this->block_size = block_size;
@@ -13,48 +39,59 @@ Cache::Cache(int cache_size, int block_size, int n_ways, int rw_cycles, bool wri
     this->set_size = cache_size - block_size - n_ways;
     this->tag_size = 32 - block_size - set_size;
 
-    cache_data = vector<vector<CacheEntry>>(pow(2, set_size), 
-                                            vector<CacheEntry>(pow(2, n_ways)));
+    cache_data = vector<vector<Cachelevel>>(pow(2, set_size), 
+                                            vector<Cachelevel>(pow(2, n_ways)));
 }
 
-Cache::~Cache(){
-    return;
-}
-
-void Cache::print_cache(){
-    for(auto& level : cache_data){
-        cout << "level:" << endl;
-        for(auto& entry : level){
-            cout << "tag: " << entry.tag << " LRU: " << entry.LRU_val
-                 << " dirty: " << entry.dirty << " valid: " << entry.valid << endl;
-        }
-    }
-}
-
-int Cache::get_acc_time(){return rw_cycles;}
-
-unsigned Cache::entry(unsigned pc){
-    unsigned set_mask = ~(-1 << set_size);
-    cout << "entry: " << ((pc >> (block_size)) & set_mask);
-    return (pc >> (2 + block_size)) & set_mask;
-}
-
-unsigned Cache::tag(unsigned pc){
-    unsigned tag_mask = ~(-1 << tag_size);
-    cout << " tag: " << ((pc >> (set_size + block_size)) & tag_mask) << endl;
-    return (pc >> (2 + set_size + block_size)) & tag_mask;
-}
-
-void Cache::update_LRU(unsigned pc){
-    unsigned entry = this->entry(pc);
+void Cache::push_block(unsigned pc){
     unsigned tag = this->tag(pc);
-    cout << "update_LRU entry: " << entry << " tag: " << tag << endl; 
+    unsigned level = this->level(pc);
+    int at = this->evict_at(level);
+
+    assert(at != -1);
+
+    Cachelevel* ent = &cache_data[level][at];
+
+    ent->tag = tag;
+    ent->dirty = false;
+    ent->valid = true;
+
+    cout << "level to push: " << level << " tag to push: " << ent->tag << endl;
+    
+    this->update_LRU(pc);
+}
+
+int Cache::evict_at(unsigned level){
+    for(int i = 0; i < cache_data[level].size(); i++){
+        if(!cache_data[level][i].LRU_val){
+            return i;
+        }      
+    }
+    return -1;
+}
+
+//return -1 if block not found, else returns block idx inside level
+int Cache::find_block(unsigned pc){
+    unsigned level = this->level(pc);
+    unsigned tag = this->tag(pc);
+    for(int i = 0; i < cache_data[level].size(); i++){
+        if(cache_data[level][i].tag == tag && cache_data[level][i].valid)
+            return i;
+    }
+    return -1;
+}
+
+//use only after pushing in a new block!
+void Cache::update_LRU(unsigned pc){
+    unsigned level = this->level(pc);
+    unsigned tag = this->tag(pc);
+    //cout << "update_LRU level: " << level << " tag: " << tag << endl; 
     int cur_LRU = -1, cur_idx = -1;
 
-    CacheEntry* ent;
-    cout << "cache_data size: " << cache_data[entry].size() << endl;
-    for(int i = 0; i < cache_data[entry].size(); i++){
-        ent = &cache_data[entry][i];
+    Cachelevel* ent;
+    //cout << "cache_data size: " << cache_data[level].size() << endl;
+    for(int i = 0; i < cache_data[level].size(); i++){
+        ent = &cache_data[level][i];
         if(ent->tag == tag){
             cur_idx = i;
             cur_LRU = ent->LRU_val;
@@ -62,28 +99,53 @@ void Cache::update_LRU(unsigned pc){
             break;
         }      
     }
-    cout << cur_LRU << cur_idx << endl;
 
     assert(cur_LRU != -1);
     assert(cur_idx != -1);
 
-    for(int j = 0; j < cache_data[entry].size(); j++){
-        ent = &cache_data[entry][j];
+    for(int j = 0; j < cache_data[level].size(); j++){
+        ent = &cache_data[level][j];
         if(ent->LRU_val > cur_LRU && j != cur_idx)
             ent->LRU_val--;
     }
-        
 }
 
+inline unsigned Cache::level(unsigned pc){
+    unsigned set_mask = ~(-1 << set_size);
+    return (pc >> (block_size)) & set_mask;
+}
+
+inline unsigned Cache::tag(unsigned pc){
+    unsigned tag_mask = ~(-1 << tag_size);
+    return (pc >> (set_size + block_size)) & tag_mask;
+}
+
+void Cache::print_cache(){
+    for(auto& level : cache_data){
+        cout << "level:" << endl;
+        for(auto& level : level){
+            cout << "tag: " << level.tag << " LRU: " << level.LRU_val
+                 << " dirty: " << level.dirty << " valid: " << level.valid << endl;
+        }
+    }
+}
+
+int Cache::get_acc_time(){return rw_cycles;}
+
 int main(){
-    Cache c1(6, 2, 2, 4, 4);
+    Cache c1(4, 2, 2, 100, false);
     cout << "set size: " << c1.set_size << endl;
     cout << "tag size: " << c1.tag_size << endl;
     cout << "block size: " << c1.block_size << endl;
-    c1.update_LRU(0);
-    c1.print_cache();
-    for(int i = 0; i < 50; i++){
-        c1.entry(i << 2);
-        c1.tag(i << 2);
+
+    for(int i = 0; i < 6; i++){
+        cout << c1.write(i << 2) << endl;
+        cout << c1.read(i << 2) << endl;
+        c1.print_cache();
     }
+
+    // for(int i = 0; i < 50; i++){
+    //     c1.level(i << 2);
+    //     c1.tag(i << 2);
+    // }
 }
