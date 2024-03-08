@@ -5,6 +5,12 @@
 
 using namespace std;
 
+enum {
+    cache_miss = 0,
+    cache_hit,
+    cache_miss_writeback,
+};
+
 struct Cachelevel{
     unsigned tag;
     int LRU_val;
@@ -21,12 +27,12 @@ struct Cachelevel{
 
 class Cache{
     public: 
-    Cache(int cache_size, int block_size, int n_ways, int rw_cycles, bool write_alloc);
+    Cache(int cache_size, int block_size, int n_ways, bool write_alloc);
     ~Cache() = default;
-    //return true on hit and false on miss
-    bool read(unsigned pc);
-    //return true on hit and false on miss
-    bool write(unsigned pc);
+    // returns hit/miss/miss + writeback
+    int read(unsigned pc);
+    // returns hit/miss/miss + writeback
+    int write(unsigned pc);
 
     int get_acc_time();
     void print_cache();

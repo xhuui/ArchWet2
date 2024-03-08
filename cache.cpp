@@ -3,19 +3,25 @@
 #include <math.h>
 #include <assert.h>
 
-bool Cache::read(unsigned pc){
+
+int Cache::read(unsigned pc){
     unsigned tag = this->tag(pc);
     unsigned level = this->level(pc);
-    cout << "read - level: " << level << " tag: " << tag << endl;
+    //cout << "read - level: " << level << " tag: " << tag << endl;
 
-    if(find_block(pc) != -1)
+    if(int at = find_block(pc) != -1){
         return true;
-
+        if(cache_data[level][at].dirty == 0)
+            return true;
+        //cache_data[level][at].dirty == 0;
+        //return false;
+    }
+        
     push_block(pc);
     return false;
 }
 
-bool Cache::write(unsigned pc){
+int Cache::write(unsigned pc){
     unsigned tag = this->tag(pc);
     unsigned level = this->level(pc);
     int idx = find_block(pc);
@@ -29,11 +35,10 @@ bool Cache::write(unsigned pc){
     return false;
 }
 
-Cache::Cache(int cache_size, int block_size, int n_ways, int rw_cycles, bool write_alloc){
+Cache::Cache(int cache_size, int block_size, int n_ways, bool write_alloc){
     this->cache_size = cache_size;
     this->block_size = block_size;
     this->n_ways = n_ways;
-    this->rw_cycles = rw_cycles;
     this->write_alloc = write_alloc;
 
     this->set_size = cache_size - block_size - n_ways;
@@ -56,7 +61,7 @@ void Cache::push_block(unsigned pc){
     ent->dirty = false;
     ent->valid = true;
 
-    cout << "level to push: " << level << " tag to push: " << ent->tag << endl;
+    //cout << "level to push: " << level << " tag to push: " << ent->tag << endl;
     
     this->update_LRU(pc);
 }
@@ -132,20 +137,30 @@ void Cache::print_cache(){
 
 int Cache::get_acc_time(){return rw_cycles;}
 
-int main(){
-    Cache c1(4, 2, 2, 100, false);
-    cout << "set size: " << c1.set_size << endl;
-    cout << "tag size: " << c1.tag_size << endl;
-    cout << "block size: " << c1.block_size << endl;
+// int main(){
+//     Cache c1(4, 3, 1, false);
+//     cout << "set size: " << c1.set_size << endl;
+//     cout << "tag size: " << c1.tag_size << endl;
+//     cout << "block size: " << c1.block_size << endl;
 
-    for(int i = 0; i < 6; i++){
-        cout << c1.write(i << 2) << endl;
-        cout << c1.read(i << 2) << endl;
-        c1.print_cache();
-    }
+//     c1.read(0);
+//     cout << c1.tag(0) << endl;
+//     cout << c1.tag(4) << endl;
+//     cout << c1.tag(1048576) << endl;
+//     cout << c1.tag(0) << endl;
+//     cout << c1.tag(12) << endl;
 
-    // for(int i = 0; i < 50; i++){
-    //     c1.level(i << 2);
-    //     c1.tag(i << 2);
-    // }
-}
+//     cout << c1.tag(16) << endl;
+//     cout << c1.tag(28) << endl;
+//     cout << c1.tag(32) << endl;
+//     cout << c1.tag(44) << endl;
+//     cout << c1.tag(48) << endl;
+
+//     cout << c1.tag(60) << endl;
+//     cout << c1.tag(64) << endl;
+//     cout << c1.tag(8) << endl;
+//     cout << c1.tag(68) << endl;
+
+//     c1.print_cache();
+    
+// }

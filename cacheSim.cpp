@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "manager.cpp"
 
 using std::FILE;
 using std::string;
@@ -60,6 +61,10 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	CacheManager manager(L1Size, L1Assoc, L1Cyc, WrAlloc,
+						 L2Size, L2Assoc, L2Cyc, WrAlloc,
+						 MemCyc, BSize);
+
 	while (getline(file, line)) {
 
 		stringstream ss(line);
@@ -81,15 +86,23 @@ int main(int argc, char **argv) {
 
 		unsigned long int num = 0;
 		num = strtoul(cutAddress.c_str(), NULL, 16);
-
+		//unsigned pc = (unsigned)num;
+		manager.access(operation, num);
 		// DEBUG - remove this line
 		cout << " (dec) " << num << endl;
+		cout << "entry level: " << manager.L2.level(num) << endl;
+		cout << "entry tag: " << manager.L1.tag(num) << endl;
 
 	}
 
-	double L1MissRate;
-	double L2MissRate;
-	double avgAccTime;
+	cout << "L1 Cache \n";
+	manager.L1.print_cache();
+	cout << "L2 Cache \n";
+	manager.L2.print_cache();
+
+	double L1MissRate = manager.cache_misrate(1);
+	double L2MissRate = manager.cache_misrate(2);
+	double avgAccTime = manager.avg_acc_time();
 
 	printf("L1miss=%.03f ", L1MissRate);
 	printf("L2miss=%.03f ", L2MissRate);

@@ -8,6 +8,7 @@ cacheSim: $(OBJS)
 
 cacheSim.o: cacheSim.cpp
 cache.o: cache.cpp cache.hpp
+cacheManager: cacheManager.cpp
 
 .PHONY: clean
 
