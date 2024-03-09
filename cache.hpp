@@ -5,20 +5,24 @@
 
 using namespace std;
 
-enum {
-    cache_miss = 0,
-    cache_hit,
-    cache_miss_writeback,
+//info for read/write functions
+//removed is true if the removed block was valid
+//pc is the evicted pc if writeback happened
+struct rw_info{
+    bool hit;
+    bool writeback;
+    bool removed;
+    unsigned pc;
 };
 
-struct Cachelevel{
-    unsigned tag;
+struct CacheEntry{
+    unsigned pc;
     int LRU_val;
     bool dirty;
     bool valid;
 
-    Cachelevel(){
-        tag = 0;
+    CacheEntry(){
+        pc = 0;
         LRU_val = 0;
         dirty = true;
         valid = false;
@@ -30,19 +34,20 @@ class Cache{
     Cache(int cache_size, int block_size, int n_ways, bool write_alloc);
     ~Cache() = default;
     // returns hit/miss/miss + writeback
-    int read(unsigned pc);
+    rw_info read(unsigned pc);
     // returns hit/miss/miss + writeback
-    int write(unsigned pc);
-
-    int get_acc_time();
+    rw_info write(unsigned pc);
+    bool update_LRU(unsigned pc);
+    void remove_block(unsigned pc);
     void print_cache();
+    bool is_write_alloc();
     //private:
-    int evict_at(unsigned level);
-    void push_block(unsigned pc);
-    void update_LRU(unsigned pc);
+    int evict_at(unsigned entry);
+    rw_info push_block(unsigned pc);
     int find_block(unsigned pc);
-    // returns idx to cache level
-    inline unsigned level(unsigned pc);
+    // returns idx to cache entry
+
+    inline unsigned entry(unsigned pc);
     inline unsigned tag(unsigned pc);
 
     int cache_size;
@@ -50,10 +55,9 @@ class Cache{
     int set_size;
     int tag_size;
     int n_ways;
-    int rw_cycles;
     bool write_alloc;
 
-    vector<vector<Cachelevel>> cache_data;
+    vector<vector<CacheEntry>> cache_data;
     
 };
 
