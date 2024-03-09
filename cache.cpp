@@ -76,8 +76,8 @@ rw_info Cache::push_block(unsigned pc){
     ent->pc = pc;
     ent->dirty = false;
     ent->valid = true;
-    
     this->update_LRU(pc);
+
     return ret;
 }
 
@@ -119,11 +119,9 @@ int Cache::find_block(unsigned pc){
 bool Cache::update_LRU(unsigned pc){
     unsigned entry = this->entry(pc);
     unsigned tag = this->tag(pc);
-    //cout << "update_LRU entry: " << entry << " tag: " << tag << endl; 
     int cur_LRU = -1, cur_idx = -1;
 
     CacheEntry* ent;
-    //cout << "cache_data size: " << cache_data[entry].size() << endl;
     for(int i = 0; i < cache_data[entry].size(); i++){
         ent = &cache_data[entry][i];
         if(this->tag(ent->pc) == tag){
@@ -133,11 +131,9 @@ bool Cache::update_LRU(unsigned pc){
             break;
         }      
     }
+
     if(cur_LRU == -1 || cur_idx == -1)
         return false;
-    
-    assert(cur_LRU != -1);
-    assert(cur_idx != -1);
 
     for(int j = 0; j < cache_data[entry].size(); j++){
         ent = &cache_data[entry][j];
@@ -169,31 +165,3 @@ void Cache::print_cache(){
         }
     }
 }
-
-// int main(){
-//     Cache c1(4, 3, 1, false);
-//     cout << "set size: " << c1.set_size << endl;
-//     cout << "tag size: " << c1.tag_size << endl;
-//     cout << "block size: " << c1.block_size << endl;
-
-//     c1.read(0);
-//     cout << c1.tag(0) << endl;
-//     cout << c1.tag(4) << endl;
-//     cout << c1.tag(1048576) << endl;
-//     cout << c1.tag(0) << endl;
-//     cout << c1.tag(12) << endl;
-
-//     cout << c1.tag(16) << endl;
-//     cout << c1.tag(28) << endl;
-//     cout << c1.tag(32) << endl;
-//     cout << c1.tag(44) << endl;
-//     cout << c1.tag(48) << endl;
-
-//     cout << c1.tag(60) << endl;
-//     cout << c1.tag(64) << endl;
-//     cout << c1.tag(8) << endl;
-//     cout << c1.tag(68) << endl;
-
-//     c1.print_cache();
-    
-// }

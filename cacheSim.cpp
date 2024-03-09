@@ -76,30 +76,13 @@ int main(int argc, char **argv) {
 			return 0;
 		}
 
-		// DEBUG - remove this line
-		//cout << endl << "operation: " << operation;
-
 		string cutAddress = address.substr(2); // Removing the "0x" part of the address
-
-		// DEBUG - remove this line
-		//cout << ", address (hex)" << cutAddress;
-
 		unsigned long int num = 0;
 		num = strtoul(cutAddress.c_str(), NULL, 16);
-		//unsigned pc = (unsigned)num;
-		//cout << " (dec) " << num << endl;
-		manager.access(operation, num);
-		// DEBUG - remove this line
-		// cout << "entry level: " << manager.L1.entry(num) << endl;
-		// cout << "entry tag: " << manager.L1.tag(num) << endl;
 
+		manager.access(operation, num);
 
 	}
-
-	// cout << "L1 Cache: \n\n";
-	// manager.L1.print_cache();
-	// cout << "L2 Cache: \n\n";
-	// manager.L2.print_cache();
 
 	double L1MissRate = manager.cache_misrate(1);
 	double L2MissRate = manager.cache_misrate(2);

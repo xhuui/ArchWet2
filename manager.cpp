@@ -68,27 +68,6 @@ class CacheManager{
                 }
             }
         }
-
-        // if(type == 'w'){
-        //     if(!(info = L1.write(pc)).hit){
-        //         l1_misses++;
-        //         if(info.writeback)
-        //             L2.update_LRU(info.pc);
-        //         if(L1.is_write_alloc()){
-        //             total_cycles += l2_rw_cycles;
-        //             l2_acc_amount++;
-        //             if(!(info = L2.write(pc)).hit){
-        //                 if(info.removed)
-        //                     L1.remove_block(info.pc);
-        //                 l2_misses++;
-        //                 if(L2.is_write_alloc())
-        //                     total_cycles += mem_rw_cycles;
-        //             }
-        //         }
-                
-        //     }
-        // }
-
     }
 
     double cache_misrate(int cache) const {

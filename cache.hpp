@@ -13,6 +13,13 @@ struct rw_info{
     bool writeback;
     bool removed;
     unsigned pc;
+
+    rw_info(){
+        hit = false;
+        writeback = false;
+        removed = false;
+        pc = 0;
+    }
 };
 
 struct CacheEntry{
@@ -24,7 +31,7 @@ struct CacheEntry{
     CacheEntry(){
         pc = 0;
         LRU_val = 0;
-        dirty = true;
+        dirty = false;
         valid = false;
     }
 };
