@@ -84,6 +84,11 @@ int main(int argc, char **argv) {
 
 	}
 
+	// cout << "L1 cache: \n\n";
+	// manager.L1.print_cache();
+	// cout << "L2 cache: \n\n"; 
+	// manager.L2.print_cache();	
+
 	double L1MissRate = manager.cache_misrate(1);
 	double L2MissRate = manager.cache_misrate(2);
 	double avgAccTime = manager.avg_acc_time();

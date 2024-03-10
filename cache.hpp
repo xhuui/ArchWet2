@@ -45,7 +45,7 @@ class Cache{
     // returns hit/miss/miss + writeback
     rw_info write(unsigned pc);
     bool update_LRU(unsigned pc);
-    void remove_block(unsigned pc);
+    int remove_block(unsigned pc);
     void print_cache();
     bool is_write_alloc();
     //private:

@@ -52,8 +52,7 @@ class CacheManager{
                 }
             }
         }
-
-        if(type == 'w'){
+        else if(type == 'w'){
             if(!(info = L1.write(pc)).hit){
                 l1_misses++;
                 l2_acc_amount++;

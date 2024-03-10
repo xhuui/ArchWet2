@@ -22,6 +22,7 @@ rw_info Cache::read(unsigned pc){
     unsigned entry = this->entry(pc);
 
     if(int at = find_block(pc) != -1){
+        update_LRU(pc);
         ret.hit = true;
         return ret;
     }
@@ -37,6 +38,7 @@ rw_info Cache::write(unsigned pc){
     unsigned entry = this->entry(pc);
     int at = find_block(pc);
     if(at != -1){
+        update_LRU(pc);
         cache_data[entry][at].dirty = 1;
         ret.hit = true;
         return ret;
@@ -45,9 +47,6 @@ rw_info Cache::write(unsigned pc){
         ret = push_block(pc);
         at = find_block(pc);
         cache_data[entry][at].dirty = 1;
-    }
-    else{
-        ret.writeback = false;
     }
     ret.hit = false;
     return ret;
@@ -81,7 +80,7 @@ rw_info Cache::push_block(unsigned pc){
     return ret;
 }
 
-void Cache::remove_block(unsigned pc){
+int Cache::remove_block(unsigned pc){
     unsigned tag = this->tag(pc);
     unsigned entry = this->entry(pc);
     CacheEntry* ent;
@@ -89,9 +88,10 @@ void Cache::remove_block(unsigned pc){
         ent = &cache_data[entry][i];
         if(this->tag((ent->pc)) == tag){
             ent->valid = false;
-            return;
+            return ent->dirty;
         }      
     }
+    return -1;
 }
 
 int Cache::evict_at(unsigned entry){
@@ -124,16 +124,18 @@ bool Cache::update_LRU(unsigned pc){
     CacheEntry* ent;
     for(int i = 0; i < cache_data[entry].size(); i++){
         ent = &cache_data[entry][i];
-        if(this->tag(ent->pc) == tag){
+        if(ent->valid && this->tag(ent->pc) == tag){
             cur_idx = i;
             cur_LRU = ent->LRU_val;
             ent->LRU_val = pow(2, n_ways) - 1;
             break;
         }      
     }
-
-    if(cur_LRU == -1 || cur_idx == -1)
+    if(cur_LRU == -1 || cur_idx == -1){
+        cout << "wtf";
         return false;
+    }
+
 
     for(int j = 0; j < cache_data[entry].size(); j++){
         ent = &cache_data[entry][j];
