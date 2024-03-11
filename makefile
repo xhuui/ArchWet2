@@ -1,14 +1,13 @@
 CC = g++
-CFLAGS = -Wall
+CFLAGS = -Wall -std=c++11 -pedantic-errors -g
 CCLINK = $(CC)
-OBJS = cache.o cacheSim.o
+OBJS = cacheManager.o cacheSim.o
 
 cacheSim: $(OBJS)
 	$(CCLINK) $(CFLAGS) $(OBJS) -o cacheSim
 
 cacheSim.o: cacheSim.cpp
-cache.o: cache.cpp cache.hpp
-manager.o: manager.cpp
+cacheManager.o: cacheManager.cpp cacheManager.hpp
 
 .PHONY: clean
 

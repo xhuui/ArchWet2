@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "manager.cpp"
+#include "cacheManager.hpp"
 
 using std::FILE;
 using std::string;
@@ -66,7 +66,6 @@ int main(int argc, char **argv) {
 						 MemCyc, BSize);
 
 	while (getline(file, line)) {
-
 		stringstream ss(line);
 		string address;
 		char operation = 0; // read (R) or write (W)
@@ -83,11 +82,6 @@ int main(int argc, char **argv) {
 		manager.access(operation, num);
 
 	}
-
-	// cout << "L1 cache: \n\n";
-	// manager.L1.print_cache();
-	// cout << "L2 cache: \n\n"; 
-	// manager.L2.print_cache();	
 
 	double L1MissRate = manager.cache_misrate(1);
 	double L2MissRate = manager.cache_misrate(2);
